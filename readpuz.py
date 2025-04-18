@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 
 
 def readrest(rest, number_clues):
@@ -11,13 +12,35 @@ def readrest(rest, number_clues):
     return title, author, copyrightstring, clues, notes
 
 
-#   matchclues :: ([Bytes], [Bytes]) -> [(Clue, Coord)]
+#   matchclues :: ([Bytes], np.array([[Bytes]])) -> {Coord -> (Clue, Clue)}
 def matchclues(clues, solution):
     # iterate + keep track of cell above and to the left-linear time. optimal?
-    for i, b in enumerate(solution)
+    height = solution.shape[0]
+    width = solution.shape[1]
+    cluedict = {(x, -1): ("$BLK", "$BLK") for x in range(width)}
+    for y in range(height):
+        cluedict[(-1, y)] = ("$BLK", "$BLK")
+    cluenumber = 0
+    for j in range(height):
+        for i in range(width):
+            if (solution[j, i] == 46):
+                cluedict[(i, j)] = ("$BLK", "$BLK")
+            elif (cluedict[(i-1, j)][0] == "$BLK") and (cluedict[(i, j-1)][1] == "$BLK"):
+                cluedict[(i, j)] = (clues[cluenumber], clues[cluenumber + 1])
+                cluenumber += 2
+            elif (cluedict[(i-1, j)][0] == "$BLK"):
+                cluedict[(i, j)] = (clues[cluenumber], cluedict[(i, j-1)][1])
+                cluenumber += 1
+            elif (cluedict[(i, j-1)][1] == "$BLK"):
+                cluedict[(i, j)] = (cluedict[(i-1, j)][0], clues[cluenumber])
+                cluenumber += 1
+            else:
+                cluedict[(i, j)] = (cluedict[(i-1, j)][0], cluedict[(i, j-1)][1])
+
+    return cluedict
 
 
-def readpuz(file):
+def readpuz(file, verbose=0):
     with open(file, 'rb') as f:
         fst_checksum = f.read(2)            # Overall file checksum
         file_magic_b = f.read(12)         # NUL-terminated constant string
@@ -36,22 +59,23 @@ def readpuz(file):
         number_clues = f.read(2)    # the number of clues on this board
         unknown_bits = f.read(2)    # a bitmask. operations unknown
         is_scrambled = f.read(2)    # 0 for unscrambled, nonzero for scrambled
-        solution = [f.read(width) for _ in range(height)]
+        solution = np.array([list(f.read(width)) for _ in range(height)])
         player_state = [f.read(width) for _ in range(height)]
         rest = f.read()
 
     title, author, copyrightstring, clues, notes = readrest(rest, number_clues)
     cluedict = matchclues(clues, solution)
-    print(file_magic_b, version_stri, width, height, number_clues)
 
-    for row in solution:
-        print(row)
-    for row in player_state:
-        print(row)
-
-    print(f"{title=} {author=} {copyrightstring=} {clues=} {notes=}")
-
-    if False:
+    if verbose == 1:
+        print(f"{title=} {author=} {copyrightstring=} {clues=} {notes=}")
+        print(solution)
+        for y in range(height):
+            for x in range(width):
+                print(f'{x}, {y}, {cluedict[(x, y)]}')
+    if verbose == 2:
+        for row in player_state:
+            print(row)
+        print(file_magic_b, version_stri, width, height, number_clues)
         print(
             fst_checksum
             , CIB_checksum
@@ -63,6 +87,8 @@ def readpuz(file):
             , number_clues
             , unknown_bits
             , is_scrambled)
+
+    return cluedict
 
 
 if __name__ == "__main__":
