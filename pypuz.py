@@ -27,7 +27,7 @@ def main(stdscr):
     for i, row in enumerate(puzzle.player_state):
         for j, b in enumerate(row):
             if b == ord('.'):
-                board.addstr(i, j, 'X')
+                board.addstr(i, j, '#')
     stdscr.refresh()
     boarder.refresh()
     board.refresh()
