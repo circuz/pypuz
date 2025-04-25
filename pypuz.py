@@ -43,7 +43,7 @@ def main(stdscr):
         # ASCII int -> character
         y, x = board.getyx()
         match c:
-            case 'q':
+            case "KEY_BACKSPACE":
                 break
             case "KEY_UP":
                 dir = 1
