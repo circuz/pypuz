@@ -4,38 +4,44 @@ import readpuz as rp
 
 
 def highlight(scr: curses.window, puz: rp.Puzzle, y, x, dir):
-    if puz.player_state[y][x] == ord('.'):
+    if puz.player_state[y][x] == '.':
         return
     elif dir == 0:
         i = 1
         j = 0
-        while (i < (puz.width-x)) and (puz.player_state[y+j][x+i] != ord('.')):
-            c = chr(scr.inch(y+j, x+i))
+        while (i < (puz.width-x)) and (puz.player_state[y+j][x+i] != '.'):
+            c = puz.player_state[y+j][x+i]
             scr.delch(y+j, x+i)
-            scr.insch(y+j, x+i, c, curses.A_REVERSE)  # fst
+            scr.insch(y+j, x+i, c, curses.A_REVERSE)  # fst 0
             i += 1
         i = -1
         j = 0
-        while (i > -x-1) and (puz.player_state[y+j][x+i] != ord('.')):
-            c = chr(scr.inch(y+j, x+i))
+        while (i > -x-1) and (puz.player_state[y+j][x+i] != '.'):
+            c = puz.player_state[y+j][x+i]
             scr.delch(y+j, x+i)
-            scr.insch(y+j, x+i, c, curses.A_REVERSE)  # snd
+            scr.insch(y+j, x+i, c, curses.A_REVERSE)  # snd 0
             i -= 1
+        c = puz.player_state[y][x]
+        scr.delch(y, x)
+        scr.insch(y, x, c, curses.A_REVERSE)  # snd
     else:
         i = 0
         j = 1
-        while (j < (puz.height-y)) and (puz.player_state[y+j][x+i] != ord('.')):
-            c = chr(scr.inch(y+j, x+i))
+        while (j < (puz.height-y)) and (puz.player_state[y+j][x+i] != '.'):
+            c = puz.player_state[y+j][x+i]
             scr.delch(y+j, x+i)
-            scr.insch(y+j, x+i, c, curses.A_REVERSE)  # fst
+            scr.insch(y+j, x+i, c, curses.A_REVERSE)  # fst 1
             j += 1
         i = 0
         j = -1
-        while (j > -y-1) and (puz.player_state[y+j][x+i] != ord('.')):
-            c = chr(scr.inch(y+j, x+i))
+        while (j > -y-1) and (puz.player_state[y+j][x+i] != '.'):
+            c = puz.player_state[y+j][x+i]
             scr.delch(y+j, x+i)
-            scr.insch(y+j, x+i, c, curses.A_REVERSE)  # snd
+            scr.insch(y+j, x+i, c, curses.A_REVERSE)  # snd 1
             j -= 1
+        c = puz.player_state[y][x]
+        scr.delch(y, x)
+        scr.insch(y, x, c, curses.A_REVERSE)  # trd
     return
 
 
@@ -61,11 +67,11 @@ def main(stdscr):
 
     # Draw player state
     for i, row in enumerate(puzzle.player_state):
-        for j, b in enumerate(row):
-            if b == ord('.'):
+        for j, c in enumerate(row):
+            if c == '.':
                 board.insstr(i, j, u'\u2588')
             else:
-                board.insstr(i, j, chr(b))
+                board.insstr(i, j, c)
     board.move(8, 8)
     stdscr.refresh()
     boarder.refresh()
@@ -79,18 +85,18 @@ def main(stdscr):
     while True:
         y, x = board.getyx()
         for i, row in enumerate(puzzle.player_state):
-            for j, b in enumerate(row):
-                if b == ord('.'):
+            for j, c in enumerate(row):
+                if c == '.':
                     board.insstr(i, j, u'\u2588')
                 else:
-                    board.insstr(i, j, chr(b))
+                    board.insstr(i, j, c)
         board.move(y, x)
         # read character from keyboard
-        c = stdscr.getkey()
+        k = stdscr.getkey()
         # ASCII int -> character
-        match c:
+        match k:
             case "KEY_BACKSPACE":
-                break
+                puzzle.write(x, y, "-")
             case " ":
                 dir = 1 - dir
             case "KEY_UP":
@@ -109,6 +115,8 @@ def main(stdscr):
                 dir = 0
                 if x < bwidth - 1:
                     board.move(y, x+1)
+            case _:
+                puzzle.write(x, y, k)
 
         y, x = board.getyx()
         highlight(board, puzzle, y, x, dir)

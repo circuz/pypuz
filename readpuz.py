@@ -25,10 +25,14 @@ class Puzzle:
             self.number_clues = f.read(2)    # the number of clues on this board
             self.unknown_bits = f.read(2)    # a bitmask. operations unknown
             self.is_scrambled = f.read(2)    # 0 for unscrambled, nonzero for scrambled
-            self.solution = [list(f.read(self.width)) for _ in range(self.height)]
-            self.player_state = [f.read(self.width) for _ in range(self.height)]
+            self.solution = [list(f.read(self.width).decode()) for _ in range(self.height)]
+            self.player_state = [list(f.read(self.width).decode()) for _ in range(self.height)]
             rest = f.read()
         self.readrest(rest)
+
+    def write(self, x, y, c: str):
+        self.player_state[y][x] = c.encode() if self.player_state[y][x] != '.' else '.'
+        return c
 
     def readrest(self, rest):
         strings = rest.split(b'\x00')
