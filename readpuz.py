@@ -56,7 +56,7 @@ class Puzzle:
         cluenumber = 0
         for j in range(height):
             for i in range(width):
-                if (self.solution[j][i] == 46):
+                if (self.solution[j][i] == '.'):
                     cluedict[(i, j)] = ("$BLK", "$BLK")
                 elif (cluedict[(i-1, j)][0] == "$BLK") and (cluedict[(i, j-1)][1] == "$BLK"):
                     across.append(self.clues[cluenumber])
