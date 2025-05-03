@@ -148,7 +148,7 @@ def main(stdscr):
     belowboarder = wy + bheight + 1
 
     draw_player_state(board, puzzle)
-    board.move(8, 8)
+    board.move(0, 0)
     stdscr.refresh()
     boarder.refresh()
     board.refresh()
@@ -173,6 +173,8 @@ def main(stdscr):
                         return 0
                     case _:
                         continue
+            case "\t":
+                puzzle.write(x, y, "=")
             case "KEY_BACKSPACE":
                 puzzle.write(x, y, "-")
             case " ":
