@@ -3,6 +3,42 @@ import curses
 import readpuz as rp
 
 
+def goup(x, y):
+    return x, y-1
+
+
+def godown(x, y):
+    return x, y+1
+
+
+def goleft(x, y):
+    return x-1, y
+
+
+def goright(x, y):
+    return x+1, y
+
+
+def move(puz: rp.Puzzle, x: int, y: int, d: str):
+    # write to the screen and then move to the next non-written square
+    # following the correct direction
+    match d:
+        case "up":
+            f = goup
+        case "down":
+            f = godown
+        case "left":
+            f = goleft
+        case "right":
+            f = goright
+
+    while x in range(0, puz.width) and y in range(0, puz.height):
+        x, y = f(x, y)
+        if puz.player_state[y][x] != '.':
+            return x, y
+    return x, y
+
+
 def write_move(puz: rp.Puzzle, x: int, y: int, k: str, dir: bool):
     # write to the screen and then move to the next non-written square
     # following the correct direction
@@ -122,6 +158,7 @@ def main(stdscr):
 
     # Initializing variables for game loop
     dir = False  # 0 for across, 1 for down
+    currclue = ""
     while True:
         y, x = board.getyx()
         draw_player_state(board, puzzle)
@@ -143,32 +180,35 @@ def main(stdscr):
             case "KEY_UP":
                 dir = True
                 if y > 0:
-                    board.move(y-1, x)
+                    x, y = move(puzzle, x, y, "up")
             case "KEY_DOWN":
                 dir = True
                 if y < bheight - 1:
-                    board.move(y+1, x)
+                    x, y = move(puzzle, x, y, "down")
             case "KEY_LEFT":
                 dir = False
                 if x > 0:
-                    board.move(y, x-1)
+                    x, y = move(puzzle, x, y, "left")
             case "KEY_RIGHT":
                 dir = False
                 if x < bwidth - 1:
-                    board.move(y, x+1)
+                    x, y = move(puzzle, x, y, "right")
             case _:
                 if len(k) == 1:
                     puzzle.write(x, y, k)
-                    nx, ny, dir = write_move(puzzle, x, y, k, dir)
-                    board.move(ny, nx)
+                    x, y, dir = write_move(puzzle, x, y, k, dir)
                     draw_player_state(board, puzzle)
+        board.move(y, x)
 
         y, x = board.getyx()
         highlight(board, puzzle, y, x, dir)
         board.move(y, x)
 
-        # Draw currclue
-        stdscr.addstr(belowboarder, 1, puzzle.cluedict[(x, y)][dir])
+        # Clear previous clur and draw current clue
+        stdscr.addstr(belowboarder, 1, " "*len(currclue))
+        board.move(y, x)
+        currclue = puzzle.cluedict[(x, y)][dir]
+        stdscr.addstr(belowboarder, 1, currclue)
 
         stdscr.refresh()
         boarder.refresh()
