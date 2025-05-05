@@ -32,10 +32,11 @@ def move(puz: rp.Puzzle, x: int, y: int, d: str):
         case "right":
             f = goright
 
-    while x in range(0, puz.width) and y in range(0, puz.height):
-        x, y = f(x, y)
-        if puz.player_state[y][x] != '.':
-            return x, y
+    nx, ny = f(x, y)
+    while nx in range(0, puz.width) and ny in range(0, puz.height):
+        if puz.player_state[ny][nx] != '.':
+            return nx, ny
+        nx, ny = f(nx, ny)
     return x, y
 
 
@@ -45,16 +46,19 @@ def write_move(puz: rp.Puzzle, x: int, y: int, k: str, dir: bool):
     puz.write(x, y, k)
     i = x
     j = y
-    if dir:
+    d = dir
+    if d:
         while puz.player_state[j][i] != '-':
             j += 1
+            if i == x and j == y and d == dir:
+                return i, j, d
             if j >= puz.height:
                 i += 1
                 j = 0
                 if i >= puz.width:
                     i = 0
                     j = 0
-                    dir = not dir
+                    d = not d
     else:
         while puz.player_state[j][i] != '-':
             i += 1
@@ -64,8 +68,8 @@ def write_move(puz: rp.Puzzle, x: int, y: int, k: str, dir: bool):
                 if j >= puz.height:
                     i = 0
                     j = 0
-                    dir = not dir
-    return i, j, dir
+                    d = not d
+    return i, j, d
 
 
 def pause(puz: rp.Puzzle):
@@ -118,6 +122,8 @@ def highlight(scr: curses.window, puz: rp.Puzzle, y, x, dir):
 def is_clue_filled(puz: rp.Puzzle, x: int, y: int, dir: bool):
     if puz.player_state[y][x] == '.':
         return (True, x, y)
+    if puz.player_state[y][x] == '-':
+        return (False, x, y)
     elif dir:
         i = 0
         j = 1
@@ -149,22 +155,28 @@ def is_clue_filled(puz: rp.Puzzle, x: int, y: int, dir: bool):
 
 
 def next_clue(puz: rp.Puzzle, x: int, y: int, dir: bool):
-    cclue = puz.cluedict[(x, y)]
-    while is_clue_filled(puz, x, y, dir):
+    cclue = puz.cluedict[(x, y)][dir]
+    first = 1
+    while first or is_clue_filled(puz, x, y, dir)[0]:
+        first = 0
         if dir:
             ix = puz.down.index(cclue)
-            if ix < len(puz.down):
+            if ix < len(puz.down) - 1:
                 cclue = puz.down[ix + 1]
-                x, y = puz.xydict(cclue)
+                x, y = puz.xydict[cclue]
             else:
                 dir = 0
+                cclue = puz.across[0]
         else:
             ix = puz.across.index(cclue)
-            if ix < len(puz.across):
+            if ix < len(puz.across) - 1:
                 cclue = puz.across[ix + 1]
-                x, y = puz.xydict(cclue)
+                x, y = puz.xydict[cclue]
             else:
                 dir = 1
+                cclue = puz.down[0]
+                x, y = puz.xydict[cclue]
+    _, x, y = is_clue_filled(puz, x, y, dir)
     return x, y, dir
 
 
@@ -228,7 +240,7 @@ def main(stdscr):
                         continue
             case "\t":
                 x, y, dir = next_clue(puzzle, x, y, dir)
-                puzzle.move(x, y)
+                board.move(x, y)
             case "KEY_BACKSPACE":
                 puzzle.write(x, y, "-")
             case " ":
