@@ -115,6 +115,59 @@ def highlight(scr: curses.window, puz: rp.Puzzle, y, x, dir):
     return
 
 
+def is_clue_filled(puz: rp.Puzzle, x: int, y: int, dir: bool):
+    if puz.player_state[y][x] == '.':
+        return (True, x, y)
+    elif dir:
+        i = 0
+        j = 1
+        while (j < (puz.height-y)) and (puz.player_state[y+j][x+i] != '.'):
+            if puz.player_state[y+j][x+i] == '-':
+                return (False, x+i, y+j)
+            j += 1
+        i = 0
+        j = -1
+        while (j > -y-1) and (puz.player_state[y+j][x+i] != '.'):
+            if puz.player_state[y+j][x+i] == '-':
+                return (False, x+i, y+j)
+            j -= 1
+        return (True, x, y)
+    else:
+        i = 1
+        j = 0
+        while (i < (puz.width-x)) and (puz.player_state[y+j][x+i] != '.'):
+            if puz.player_state[y+j][x+i] == '-':
+                return (False, x+i, y+j)
+            i += 1
+        i = -1
+        j = 0
+        while (i > -x-1) and (puz.player_state[y+j][x+i] != '.'):
+            if puz.player_state[y+j][x+i] == '-':
+                return (False, x+i, y+j)
+            i -= 1
+        return (True, x, y)
+
+
+def next_clue(puz: rp.Puzzle, x: int, y: int, dir: bool):
+    cclue = puz.cluedict[(x, y)]
+    while is_clue_filled(puz, x, y, dir):
+        if dir:
+            ix = puz.down.index(cclue)
+            if ix < len(puz.down):
+                cclue = puz.down[ix + 1]
+                x, y = puz.xydict(cclue)
+            else:
+                dir = 0
+        else:
+            ix = puz.across.index(cclue)
+            if ix < len(puz.across):
+                cclue = puz.across[ix + 1]
+                x, y = puz.xydict(cclue)
+            else:
+                dir = 1
+    return x, y, dir
+
+
 def draw_player_state(board: curses.window, puz: rp.Puzzle):
     y, x = board.getyx()
     # Draw player state
@@ -174,7 +227,8 @@ def main(stdscr):
                     case _:
                         continue
             case "\t":
-                puzzle.write(x, y, "=")
+                x, y, dir = next_clue(puzzle, x, y, dir)
+                puzzle.move(x, y)
             case "KEY_BACKSPACE":
                 puzzle.write(x, y, "-")
             case " ":

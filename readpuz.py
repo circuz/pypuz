@@ -43,13 +43,14 @@ class Puzzle:
         self.notes = strings[-1]
         return self
 
-    #   matchclues :: ([Bytes], np.array([[Bytes]])) -> ({Coord -> (Clue, Clue)}, [String], [String])
+    #   matchclues :: ([Bytes], np.array([[Bytes]])) -> ({Coord -> (Clue, Clue)}, {String -> Coord}, [String], [String])
     def matchclues(self):
         # iterate + keep track of cell above and to the left-linear time. optimal?
         across = []
         down = []
         height = len(self.solution)
         width = len(self.solution[0])
+        xydict = {}
         cluedict = {(x, -1): ("$BLK", "$BLK") for x in range(width)}
         for y in range(height):
             cluedict[(-1, y)] = ("$BLK", "$BLK")
@@ -61,19 +62,24 @@ class Puzzle:
                 elif (cluedict[(i-1, j)][0] == "$BLK") and (cluedict[(i, j-1)][1] == "$BLK"):
                     across.append(self.clues[cluenumber])
                     down.append(self.clues[cluenumber+1])
+                    xydict[self.clues[cluenumber]] = (i, j)
+                    xydict[self.clues[cluenumber+1]] = (i, j)
                     cluedict[(i, j)] = (self.clues[cluenumber], self.clues[cluenumber + 1])
                     cluenumber += 2
                 elif (cluedict[(i-1, j)][0] == "$BLK"):
+                    xydict[self.clues[cluenumber]] = (i, j)
                     across.append(self.clues[cluenumber])
                     cluedict[(i, j)] = (self.clues[cluenumber], cluedict[(i, j-1)][1])
                     cluenumber += 1
                 elif (cluedict[(i, j-1)][1] == "$BLK"):
+                    xydict[self.clues[cluenumber]] = (i, j)
                     down.append(self.clues[cluenumber+1])
                     cluedict[(i, j)] = (cluedict[(i-1, j)][0], self.clues[cluenumber])
                     cluenumber += 1
                 else:
                     cluedict[(i, j)] = (cluedict[(i-1, j)][0], cluedict[(i, j-1)][1])
 
+        self.xydict = xydict
         self.cluedict = cluedict
         self.across = across
         self.down = down
