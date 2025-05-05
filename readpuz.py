@@ -62,18 +62,18 @@ class Puzzle:
                 elif (cluedict[(i-1, j)][0] == "$BLK") and (cluedict[(i, j-1)][1] == "$BLK"):
                     across.append(self.clues[cluenumber])
                     down.append(self.clues[cluenumber+1])
-                    xydict[b'A' + bytes(str(len(across)), 'ascii') + b': ' + self.clues[cluenumber]] = (i, j)
-                    xydict[b'D' + bytes(str(len(down)), 'ascii') + b': ' + self.clues[cluenumber+1]] = (i, j)
+                    xydict[b'A' + bytes(str(cluenumber), 'ascii') + b': ' + self.clues[cluenumber]] = (i, j)
+                    xydict[b'D' + bytes(str(cluenumber), 'ascii') + b': ' + self.clues[cluenumber+1]] = (i, j)
                     cluedict[(i, j)] = (self.clues[cluenumber], self.clues[cluenumber + 1])
                     cluenumber += 2
                 elif (cluedict[(i-1, j)][0] == "$BLK"):
-                    xydict[b'A' + bytes(str(len(across)), 'ascii') + b': ' + self.clues[cluenumber]] = (i, j)
+                    xydict[b'A' + bytes(str(cluenumber), 'ascii') + b': ' + self.clues[cluenumber]] = (i, j)
                     across.append(self.clues[cluenumber])
                     cluedict[(i, j)] = (self.clues[cluenumber], cluedict[(i, j-1)][1])
                     cluenumber += 1
                 elif (cluedict[(i, j-1)][1] == "$BLK"):
                     xydict[self.clues[cluenumber]] = (i, j)
-                    xydict[b'D' + bytes(str(len(down)), 'ascii') + b': ' + self.clues[cluenumber]] = (i, j)
+                    xydict[b'D' + bytes(str(cluenumber), 'ascii') + b': ' + self.clues[cluenumber]] = (i, j)
                     down.append(self.clues[cluenumber])
                     cluedict[(i, j)] = (cluedict[(i-1, j)][0], self.clues[cluenumber])
                     cluenumber += 1
