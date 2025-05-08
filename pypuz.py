@@ -20,8 +20,7 @@ def goright(x, y):
 
 
 def move(puz: rp.Puzzle, x: int, y: int, d: str):
-    # write to the screen and then move to the next non-written square
-    # following the correct direction
+    # take a step independent of writing but skip blocked squares
     match d:
         case "up":
             f = goup
@@ -43,7 +42,7 @@ def move(puz: rp.Puzzle, x: int, y: int, d: str):
 def write_move(puz: rp.Puzzle, x: int, y: int, k: str, dir: bool):
     # write to the screen and then move to the next non-written square
     # following the correct direction
-    puz.write(x, y, k)
+    puz.write(x, y, k.upper())
     i = x
     j = y
     d = dir
@@ -159,7 +158,7 @@ def next_clue(puz: rp.Puzzle, x: int, y: int, dir: bool):
     first = 1
     while first or is_clue_filled(puz, x, y, dir)[0]:
         first = 0
-        if dir:
+        if dir:  # Down
             ix = puz.down.index(cclue)
             if ix < len(puz.down) - 1:
                 cclue = puz.down[ix + 1]
@@ -167,7 +166,8 @@ def next_clue(puz: rp.Puzzle, x: int, y: int, dir: bool):
             else:
                 dir = 0
                 cclue = puz.across[0]
-        else:
+                x, y = puz.xydict[cclue]
+        else:  # Across
             ix = puz.across.index(cclue)
             if ix < len(puz.across) - 1:
                 cclue = puz.across[ix + 1]
@@ -212,18 +212,20 @@ def main(stdscr):
     boarder.border(0, 0, 0, 0, 0, 0, 0, 0)
     belowboarder = wy + bheight + 1
 
-    draw_player_state(board, puzzle)
-    board.move(0, 0)
-    stdscr.refresh()
-    boarder.refresh()
-    board.refresh()
-
     # Create window object; size is whole stdscreen
     stdscr.keypad(True)
 
     # Initializing variables for game loop
     dir = False  # 0 for across, 1 for down
-    currclue = ""
+    currclue = "A0"
+    (x, y) = puzzle.xydict[currclue]
+    draw_player_state(board, puzzle)
+    board.move(x, y)
+    highlight(board, puzzle, y, x, dir)
+    stdscr.addstr(belowboarder, 1, "A0: " + str(puzzle.strdict["A0"], 'latin-1'))
+    stdscr.refresh()
+    boarder.refresh()
+    board.refresh()
     while True:
         y, x = board.getyx()
         draw_player_state(board, puzzle)
@@ -263,7 +265,6 @@ def main(stdscr):
                     x, y = move(puzzle, x, y, "right")
             case _:
                 if len(k) == 1:
-                    puzzle.write(x, y, k)
                     x, y, dir = write_move(puzzle, x, y, k, dir)
                     draw_player_state(board, puzzle)
         board.move(y, x)
@@ -273,10 +274,10 @@ def main(stdscr):
         board.move(y, x)
 
         # Clear previous clur and draw current clue
-        stdscr.addstr(belowboarder, 1, " "*len(currclue))
+        stdscr.addstr(belowboarder, 1, " "*(len(puzzle.strdict[currclue]) + 6))
         board.move(y, x)
         currclue = puzzle.cluedict[(x, y)][dir]
-        stdscr.addstr(belowboarder, 1, currclue)
+        stdscr.addstr(belowboarder, 1, currclue + ": " + str(puzzle.strdict[currclue], 'latin-1'))
 
         stdscr.refresh()
         boarder.refresh()

@@ -48,9 +48,10 @@ class Puzzle:
         # iterate + keep track of cell above and to the left-linear time. optimal?
         across = []
         down = []
-        height = len(self.solution)
-        width = len(self.solution[0])
+        height = self.height
+        width = self.width
         xydict = {}
+        strdict = {}
         cluedict = {(x, -1): ("$BLK", "$BLK") for x in range(width)}
         for y in range(height):
             cluedict[(-1, y)] = ("$BLK", "$BLK")
@@ -60,26 +61,34 @@ class Puzzle:
                 if (self.solution[j][i] == '.'):
                     cluedict[(i, j)] = ("$BLK", "$BLK")
                 elif (cluedict[(i-1, j)][0] == "$BLK") and (cluedict[(i, j-1)][1] == "$BLK"):
-                    across.append(self.clues[cluenumber])
-                    down.append(self.clues[cluenumber+1])
-                    xydict[b'A' + bytes(str(cluenumber), 'ascii') + b': ' + self.clues[cluenumber]] = (i, j)
-                    xydict[b'D' + bytes(str(cluenumber), 'ascii') + b': ' + self.clues[cluenumber+1]] = (i, j)
-                    cluedict[(i, j)] = (self.clues[cluenumber], self.clues[cluenumber + 1])
+                    aclue = 'A' + str(cluenumber)
+                    dclue = 'D' + str(cluenumber+1)
+                    across.append(aclue)
+                    down.append(dclue)
+                    xydict[aclue] = (i, j)
+                    xydict[dclue] = (i, j)
+                    cluedict[(i, j)] = (aclue, dclue)
+                    strdict[aclue] = self.clues[cluenumber]
+                    strdict[dclue] = self.clues[cluenumber+1]
                     cluenumber += 2
                 elif (cluedict[(i-1, j)][0] == "$BLK"):
-                    xydict[b'A' + bytes(str(cluenumber), 'ascii') + b': ' + self.clues[cluenumber]] = (i, j)
-                    across.append(self.clues[cluenumber])
-                    cluedict[(i, j)] = (self.clues[cluenumber], cluedict[(i, j-1)][1])
+                    aclue = 'A' + str(cluenumber)
+                    xydict[aclue] = (i, j)
+                    across.append(aclue)
+                    cluedict[(i, j)] = (aclue, cluedict[(i, j-1)][1])
+                    strdict[aclue] = self.clues[cluenumber]
                     cluenumber += 1
                 elif (cluedict[(i, j-1)][1] == "$BLK"):
-                    xydict[self.clues[cluenumber]] = (i, j)
-                    xydict[b'D' + bytes(str(cluenumber), 'ascii') + b': ' + self.clues[cluenumber]] = (i, j)
-                    down.append(self.clues[cluenumber])
-                    cluedict[(i, j)] = (cluedict[(i-1, j)][0], self.clues[cluenumber])
+                    dclue = 'D' + str(cluenumber)
+                    xydict[dclue] = (i, j)
+                    down.append(dclue)
+                    cluedict[(i, j)] = (cluedict[(i-1, j)][0], dclue)
+                    strdict[dclue] = self.clues[cluenumber]
                     cluenumber += 1
                 else:
                     cluedict[(i, j)] = (cluedict[(i-1, j)][0], cluedict[(i, j-1)][1])
 
+        self.strdict = strdict
         self.xydict = xydict
         self.cluedict = cluedict
         self.across = across
