@@ -43,31 +43,11 @@ def write_move(puz: rp.Puzzle, x: int, y: int, k: str, dir: bool):
     # write to the screen and then move to the next non-written square
     # following the correct direction
     puz.write(x, y, k.upper())
-    i = x
-    j = y
-    d = dir
-    if d:
-        while puz.player_state[j][i] != '-':
-            j += 1
-            if i == x and j == y and d == dir:
-                return i, j, d
-            if j >= puz.height:
-                i += 1
-                j = 0
-                if i >= puz.width:
-                    i = 0
-                    j = 0
-                    d = not d
+    if is_clue_filled(puz, x, y, dir)[0]:
+        i, j, d = next_clue(puz, x, y, dir)
     else:
-        while puz.player_state[j][i] != '-':
-            i += 1
-            if i >= puz.width:
-                i = 0
-                j += 1
-                if j >= puz.height:
-                    i = 0
-                    j = 0
-                    d = not d
+        _, i, j = is_clue_filled(puz, x, y, dir)
+        d = dir
     return i, j, d
 
 
