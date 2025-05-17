@@ -19,6 +19,31 @@ def goright(x, y):
     return x+1, y
 
 
+def erasebackward(puz: rp.Puzzle, x: int, y: int, dir: bool):
+    i = x
+    j = y
+    puz.write(i, j, '-')
+    first = True
+    while first or (puz.player_state[j][i] == '.'):
+        first = False
+        if dir:
+            j -= 1
+        else:
+            i -= 1
+        if (i < 0):
+            j -= 1
+            i = puz.width - 1
+            if (j < 0):
+                dir = not dir
+        if (j < 0):
+            i -= 1
+            j = puz.height - 1
+            if (i < 0):
+                dir = not dir
+                i = puz.width - 1
+    return i, j, dir
+
+
 def move(puz: rp.Puzzle, x: int, y: int, d: str):
     # take a step independent of writing but skip blocked squares
     match d:
@@ -112,10 +137,12 @@ def is_clue_filled(puz: rp.Puzzle, x: int, y: int, dir: bool):
             j += 1
         i = 0
         j = -1
-        while (j > -y-1) and (puz.player_state[y+j][x+i] != '.'):
+        while (j > -y) and (puz.player_state[y+j][x+i] != '.'):
+            j -= 1
+        while (j < 0):
             if puz.player_state[y+j][x+i] == '-':
                 return (False, x+i, y+j)
-            j -= 1
+            j += 1
         return (True, x, y)
     else:
         i = 1
@@ -126,10 +153,12 @@ def is_clue_filled(puz: rp.Puzzle, x: int, y: int, dir: bool):
             i += 1
         i = -1
         j = 0
-        while (i > -x-1) and (puz.player_state[y+j][x+i] != '.'):
+        while (i > -x) and (puz.player_state[y+j][x+i] != '.'):
+            i -= 1
+        while (i < 0):
             if puz.player_state[y+j][x+i] == '-':
                 return (False, x+i, y+j)
-            i -= 1
+            i += 1
         return (True, x, y)
 
 
@@ -224,7 +253,7 @@ def main(stdscr):
                 x, y, dir = next_clue(puzzle, x, y, dir)
                 board.move(x, y)
             case "KEY_BACKSPACE":
-                puzzle.write(x, y, "-")
+                x, y, dir = erasebackward(puzzle, x, y, dir)
             case " ":
                 dir = not dir
             case "KEY_UP":

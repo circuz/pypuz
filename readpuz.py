@@ -31,7 +31,7 @@ class Puzzle:
         self.readrest(rest)
 
     def write(self, x, y, c: str):
-        self.player_state[y][x] = c.encode() if self.player_state[y][x] != '.' else '.'
+        self.player_state[y][x] = c if self.player_state[y][x] != '.' else '.'
         return c
 
     def readrest(self, rest):
