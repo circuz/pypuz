@@ -162,7 +162,7 @@ def is_clue_filled(puz: rp.Puzzle, x: int, y: int, dir: bool):
         return (True, x, y)
 
 
-def next_clue(puz: rp.Puzzle, x: int, y: int, dir: bool):
+def next_clue(puz: rp.Puzzle, x: int, y: int, dir: bool):  # TODO: fix this function ugh
     cclue = puz.cluedict[(x, y)][dir]
     first = 1
     while first or is_clue_filled(puz, x, y, dir)[0]:
